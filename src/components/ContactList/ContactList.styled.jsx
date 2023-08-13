@@ -4,14 +4,16 @@ export const ContactsList = styled.ul`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+
+  gap: ${props => props.theme.spacing(2.5)};
 `;
 
 export const ContactItem = styled.li`
   display: flex;
+  width: ${props => props.theme.spacing(75)};
   align-items: center;
-  margin: 10px;
-  gap: 50px;
+  padding: ${props => props.theme.spacing(2.5)};
+  justify-content: space-between;
 `;
 
 export const Contact = styled.p`

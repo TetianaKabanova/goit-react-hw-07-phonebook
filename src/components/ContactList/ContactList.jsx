@@ -5,43 +5,39 @@ import {
   DeleteButton,
 } from './ContactList.styled';
 import { useDispatch, useSelector } from 'react-redux';
-import { deleteContact } from 'redux/phonebookReducer';
+import { deleteContact } from 'redux/api';
 import { toast } from 'react-toastify';
-import { notifyOptions } from 'components/notifyOptions';
+import { notifyOptions } from 'components/Notification/notifyOptions';
+import { getVisibleContacts } from 'redux/selectors';
 
 export const ContactList = () => {
   const dispatch = useDispatch();
-  const contacts = useSelector(state => state.phonebook.contacts);
-  const filter = useSelector(state => state.phonebook.filter);
-  const getFilteredContacts = () => {
-    const normalizedFilter = filter.toLowerCase();
+  const contacts = useSelector(getVisibleContacts);
 
-    return contacts.filter(contact =>
-      contact.name.toLowerCase().includes(normalizedFilter)
-    );
-  };
-  const handleDeleteContact = (id, name) => {
-    dispatch(deleteContact(id, name));
+  const handleDeleteContact = contact => {
+    dispatch(deleteContact(contact.id));
+
     toast.info(
-      `Contact with with name ${name} has been deleted!`,
+      `Contact with with name ${contact.name} has been deleted!`,
       notifyOptions
     );
   };
 
   return (
     <ContactsList>
-      {getFilteredContacts()?.map(({ id, name, number }) => {
-        return (
-          <ContactItem key={id}>
-            <Contact>
-              {name}: {number}
-            </Contact>
-            <DeleteButton onClick={() => handleDeleteContact(id, name)}>
-              Delete
-            </DeleteButton>
-          </ContactItem>
-        );
-      })}
+      {contacts?.map(({ id, name, number }) => (
+        <ContactItem key={id}>
+          <Contact>
+            {name}: {number}
+          </Contact>
+          <DeleteButton
+            type="button"
+            onClick={() => handleDeleteContact({ id, name })}
+          >
+            Delete
+          </DeleteButton>
+        </ContactItem>
+      ))}
     </ContactsList>
   );
 };

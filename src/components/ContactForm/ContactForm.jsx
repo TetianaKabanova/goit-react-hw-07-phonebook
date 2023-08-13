@@ -6,69 +6,63 @@ import {
   Wrapper,
 } from './ContactForm.styled';
 import { useDispatch, useSelector } from 'react-redux';
-import { setContacts, setName, setNumber } from 'redux/phonebookReducer';
-import { toast } from 'react-toastify';
-import { notifyOptions } from 'components/notifyOptions';
-import { nanoid } from 'nanoid';
 
-export const ContactForm = ({ onSubmit }) => {
-  const name = useSelector(state => state.phonebook.name);
-  const number = useSelector(state => state.phonebook.number);
-  const contacts = useSelector(state => state.phonebook.contacts);
+import { toast } from 'react-toastify';
+import { notifyOptions } from 'components/Notification/notifyOptions';
+import { nanoid } from 'nanoid';
+import { addContact, getContacts } from 'redux/api';
+import { getVisibleContacts } from 'redux/selectors';
+import { useEffect, useState } from 'react';
+
+export const ContactForm = () => {
+  const [name, setName] = useState('');
+  const [number, setNumber] = useState('');
+  const contacts = useSelector(getVisibleContacts);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(getContacts());
+  }, [dispatch]);
 
   const handleChange = e => {
     const { name, value } = e.target;
     switch (name) {
       case 'name':
-        dispatch(setName(value));
+        setName(value);
         break;
       case 'number':
-        dispatch(setNumber(value));
+        setNumber(value);
         break;
       default:
         return;
     }
   };
+
   const handleSubmit = e => {
     e.preventDefault();
 
-    const contact = {
-      id: nanoid(),
-      name,
-      number,
-    };
+    const normalizedName = name.toLowerCase();
+    const existingContact = contacts.find(
+      contact => contact.name.toLowerCase() === normalizedName
+    );
 
-    handleAddContact(contact);
-
-    reset(name, number);
-  };
-
-  const handleAddContact = contact => {
-    const existingContacts = checkNewContactData(name);
-
-    if (existingContacts) {
-      return toast.error(
-        `Contact with name "${name}" already exists!`,
-        notifyOptions
-      );
+    if (existingContact) {
+      toast.error(`Contact with name "${name}" already exists!`, notifyOptions);
+      reset();
+      return;
     }
 
-    dispatch(setContacts(contact));
+    dispatch(addContact({ id: nanoid(), name, number }));
+    reset();
     toast.success(
-      `Contact with name ${contact.name} is added to the contact list!`,
+      `Contact with name ${name} is added to the contact list!`,
       notifyOptions
     );
   };
 
-  const checkNewContactData = name => {
-    return contacts.some(
-      contact => contact.name.toLowerCase() === name.toLowerCase()
-    );
-  };
-  const reset = (name, number) => {
-    dispatch(setName(''));
-    dispatch(setNumber(''));
+  const reset = () => {
+    setName('');
+    setNumber('');
   };
 
   return (
@@ -77,7 +71,6 @@ export const ContactForm = ({ onSubmit }) => {
         <Label htmlFor="name">Name</Label>
         <Input
           type="text"
-          id="name"
           name="name"
           pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
           title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
@@ -92,7 +85,6 @@ export const ContactForm = ({ onSubmit }) => {
         <Input
           type="tel"
           name="number"
-          id="number"
           pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
           title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
           required

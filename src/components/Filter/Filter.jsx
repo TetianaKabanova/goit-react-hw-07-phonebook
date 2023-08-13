@@ -1,9 +1,10 @@
 import { FilterWrap, FilterLabel, FilterInput } from './Filter.styled';
 import { useDispatch, useSelector } from 'react-redux';
 import { setFilter } from 'redux/phonebookReducer';
+import { selectFilter } from 'redux/selectors';
 
 export const Filter = ({ title }) => {
-  const filter = useSelector(state => state.phonebook.filter);
+  const filter = useSelector(selectFilter);
   const dispatch = useDispatch();
 
   const handleFilterChange = e => {
